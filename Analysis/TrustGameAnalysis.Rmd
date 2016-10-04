@@ -123,6 +123,8 @@ tgData$repaymentRate = tgData$repayment/tgData$investment
 
 
 ```{r demographics, echo=FALSE, eval=TRUE, warning=FALSE, results='hide'}
+# See Table below (outside the chunks) for an easy-to-read summary when this markdown document is knitted.
+
 # current data format is long form (each participant appears in 10 rows because of 10 rounds in the TG)
 # isolate the first round just to look at demographics
 
@@ -197,11 +199,19 @@ mean(mddDemographics$MMSE); sd(mddDemographics$MMSE)
 mean(ctlDemographics$MMSE); sd(ctlDemographics$MMSE)
 anova(lm(MMSE ~ condition, tgDataDemographics))
 
+## WAIS
+mean(bdDemographics$WAIS); sd(bdDemographics$WAIS)
+mean(mddDemographics$WAIS); sd(mddDemographics$WAIS)
+mean(ctlDemographics$WAIS); sd(ctlDemographics$WAIS)
+anova(lm(WAIS ~ condition, tgDataDemographics))
+
 
 ```
 
 
 ```{r clinical-and-comorbidity, echo=FALSE, eval=TRUE, warning=FALSE, results='hide'}
+# See Table below (outside the chunks) for an easy-to-read summary when this markdown document is knitted.
+
 ## clinical: YMRS, IDSC, GAF
 mean(bdDemographics$YMRS); sd(bdDemographics$YMRS)
 mean(mddDemographics$YMRS); sd(mddDemographics$YMRS)
@@ -309,6 +319,8 @@ mean(bdDemographics$BD_numEp); sd(bdDemographics$BD_numEp)
 
 
 ```{r medication, echo=FALSE, eval=TRUE, results='hide'}
+# See Table below (outside the chunks) for an easy-to-read summary when this markdown document is knitted.
+
 # Medication coding
 # --- Lithium
 tgDataDemographics$Mental_Medication_lithium = 0
@@ -524,6 +536,7 @@ Annual Income | &nbsp; | &nbsp; | &nbsp; | $\chi^2$=`r format(chisq.test(table(t
 &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp;
 **Cognitive** | &nbsp; |  &nbsp; | &nbsp; |  &nbsp;
 MMSE | `r format(mean(bdDemographics$MMSE), digits=4)` (`r format(sd(bdDemographics$MMSE), digits=4)`) | `r format(mean(mddDemographics$MMSE), digits=4)` (`r format(sd(mddDemographics$MMSE), digits=4)`) | `r format(mean(ctlDemographics$MMSE), digits=4)` (`r format(sd(ctlDemographics$MMSE), digits=4)`) | F=`r anova(lm(MMSE ~ condition, tgDataDemographics))$"F value"[1]`
+WAIS-III | `r format(mean(bdDemographics$WAIS), digits=4)` (`r format(sd(bdDemographics$WAIS), digits=4)`) | `r format(mean(mddDemographics$WAIS), digits=4)` (`r format(sd(mddDemographics$WAIS), digits=4)`) | `r format(mean(ctlDemographics$WAIS), digits=4)` (`r format(sd(ctlDemographics$WAIS), digits=4)`) | F=`r anova(lm(WAIS ~ condition, tgDataDemographics))$"F value"[1]`
 &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp;
 **Clinical** | &nbsp; |  &nbsp; | &nbsp; |  &nbsp;
 YMRS | `r format(mean(bdDemographics$YMRS), digits=4)` (`r format(sd(bdDemographics$YMRS), digits=4)`) | `r format(mean(mddDemographics$YMRS), digits=4)` (`r format(sd(mddDemographics$YMRS), digits=4)`) | `r format(mean(ctlDemographics$YMRS), digits=4)` (`r format(sd(ctlDemographics$YMRS), digits=4)`) | F=`r anova(lm(YMRS ~ condition, tgDataDemographics))$"F value"[1]`
@@ -793,6 +806,11 @@ simpleMod2 = summary(lmer(repaymentRate~(conditionRelevel) + (1 + round|subjectI
 # income didn't affect: chi^2(5)=3.89, p=.57
 
 
+# controlling for comorbidities, as suggested by a rev, # p = .89
+#tgData$numComorbid = (tgData$NERD_V1_Dysthymic_Current==3) + (tgData$NERD_V1_Psychosisoutmood_Current==3) +  (tgData$NERD_V1_Psychosisinmood_Current==3) + (tgData$NERD_V1_Panic_Current==3) + (tgData$NERD_V1_Agora_Current==3) + (tgData$NERD_V1_AWOPD_Current==3) + (tgData$NERD_V1_SocPhobia_Current==3) + (tgData$NERD_V1_SpecPhobia_Current==3) + (tgData$NERD_V1_OCD_Current==3) + (tgData$NERD_V1_PTSD_Current==3) + (tgData$NERD_V1_GAD_Current==3) + (tgData$NERD_V1_Somat_Current==3) + (tgData$NERD_V1_Pain_Current==3) + (tgData$NERD_V1_Hypochon_Current==3) + (tgData$NERD_V1_BDD_Current==3) + (tgData$NERD_V1_Anorexia_Current==3) + (tgData$NERD_V1_Bulimia_Current==3) + (tgData$NERD_V1_Binge_Current==3)
+#simpleMod_comorbid = lmer(repaymentRate ~ condition + numComorbid + (1 + round|subjectID), tgData)
+#anova(simpleMod_comorbid, simpleMod)
+
 
 
 ## R squared using MuMIn::r.squaredGLMM()
@@ -846,6 +864,20 @@ tgTotal$totalMoneyKeptByInvestor = 100 - tgTotal$investment + tgTotal$repayment
 #anova(lm(repayment ~ condition+SES, tgTotal))
 #anova(lm(totalMoneyKept ~ condition+SES, tgTotal))
 #anova(lm(totalMoneyKeptByInvestor ~ condition+SES, tgTotal))
+
+# controlling for comorbidities, as suggested by a rev
+# tgTotal = aggregate(investment ~ condition + IDSC + YMRS + subjectID + numComorbid, tgData, sum)
+# tgTotal$repayment = aggregate(repayment ~ condition + IDSC + YMRS +  subjectID + numComorbid, tgData, sum)$repayment
+# tgTotal$totalMoneyKept = tgTotal$investment*3 - tgTotal$repayment
+# tgTotal$totalMoneyKeptByInvestor = 100 - tgTotal$investment + tgTotal$repayment
+# 
+#anova(lm(investment ~ condition+numComorbid, tgTotal))
+#anova(lm(repayment ~ condition+numComorbid, tgTotal))
+#anova(lm(totalMoneyKept ~ condition+numComorbid, tgTotal))
+#anova(lm(totalMoneyKeptByInvestor ~ condition+numComorbid, tgTotal))
+
+
+
 
 
 
