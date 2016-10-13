@@ -205,7 +205,7 @@ mean(mddDemographics$WAIS); sd(mddDemographics$WAIS)
 mean(ctlDemographics$WAIS); sd(ctlDemographics$WAIS)
 anova(lm(WAIS ~ condition, tgDataDemographics))
 
-
+lsr::etaSquared(aov(WAIS ~ condition, tgDataDemographics))
 ```
 
 
@@ -672,9 +672,9 @@ Below that graph are more fine-grained histograms:
 tgSum <- tgData %>%
   group_by(condition, round) %>%
   summarize(sem = sem(repaymentRate), repaymentRate = mean(repaymentRate), n=n())
-tgSum$Condition = factor(tgSum$condition, levels=c("BD", "MDD", "CTL"))
+tgSum$Condition = factor(tgSum$condition, levels=c("BD", "MDD", "CTL"), labels=c("rBD", "rMDD", "CTL"))
 
-tgData$Condition = factor(tgData$condition, levels=c("BD", "MDD", "CTL"))
+tgData$Condition = factor(tgData$condition, levels=c("BD", "MDD", "CTL"), labels=c("rBD", "rMDD", "CTL"))
 
 ggplot(tgSum, aes(x=round, y=repaymentRate, color=Condition, group=Condition, shape=Condition)) + 
   #geom_point(aes(color=Condition), alpha=1/4, position=position_jitter(width=.2,height=0), data=tgData) +
