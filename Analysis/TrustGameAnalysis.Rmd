@@ -1,7 +1,7 @@
 ---
 title: "Trust Game Analysis"
 author: "Desmond Ong"
-date: "August 1, 2016"
+date: "October 28, 2016"
 output: html_document
 ---
 
@@ -97,26 +97,15 @@ my_default_theme = theme_bw() + theme(strip.background = element_rect(fill="#FFF
         title = element_text(size=18, vjust=1),
         panel.grid = element_blank())
 
-tgData = read.csv('tgData_full_anonymized.csv')
+## -- note, we have redacted demographic information (age, gender, ethnicity) as well as clinical characteristics (illness duration, medication status, etc), for the dataset uploaded to the github repo. This is mainly for privacy reasons. The data with this demographic/clinical information is available upon request. The dataset we uploaded contains all the behavioral data only.
 
-tgData = tgData[tgData$Condition!='unused',]; 
-tgData$condition = factor(tgData$Condition, levels=c("CTL", "BD", "MDD"))
+# comment out the relevant line. Note that the data tables all expect the demographic information to be present, so the rmd document will not be able to knit with the redacted data. But the rest of the analysis after the "demographic" and "clinical" chunks below, will still be runnable.
 
-levels(tgData$Education)[18] = 16
-levels(tgData$Education)[17] = 16
-levels(tgData$Education)[14] = 18
-levels(tgData$Education)[1] = NA
-levels(tgData$Education)[1] = NA
-tgData$EducationNumber = as.numeric(as.character(tgData$Education))
+tgData = read.csv('tgData_full_anonymized_with_demographics.csv')
+#tgData = read.csv('tgData_full_anonymized.csv')
 
-tgData$EmploymentYes = tgData$Employment=="Full-Time" | tgData$Employment=="Part-Time"
-tgData$PartneredYes = tgData$Marital.Status =="Married" | tgData$Marital.Status =="Live-in Partner" | tgData$Marital.Status =="Single (in a current relationship)"
-
-levels(tgData$Children.Number) <- c("", "0", "1", "2", "3")
-tgData$Children.Number = as.numeric(factor(tgData$Children.Number))
-
-tgData$IllnessDuration = (tgData$condition=="MDD")*tgData$MDD_durationMonth + (tgData$condition=="BD")*tgData$BD_durationMonth
-tgData$IllnessDuration[is.na(tgData$IllnessDuration)]=0
+tgData$ConditionBDBase = factor(tgData$condition, levels=c("BD", "MDD", "CTL"), labels=c("rBD", "rMDD", "CTL"))
+tgData$condition = factor(tgData$ConditionBDBase, levels=c("CTL", "rBD", "rMDD"))
 
 tgData$repaymentRate = tgData$repayment/tgData$investment
 ```
@@ -130,8 +119,8 @@ tgData$repaymentRate = tgData$repayment/tgData$investment
 
 tgDataDemographics = subset(tgData, tgData$round==1)
 
-bdDemographics = subset(tgDataDemographics, tgDataDemographics$Condition=="BD")
-mddDemographics = subset(tgDataDemographics, tgDataDemographics$Condition=="MDD")
+bdDemographics = subset(tgDataDemographics, tgDataDemographics$Condition=="rBD")
+mddDemographics = subset(tgDataDemographics, tgDataDemographics$Condition=="rMDD")
 ctlDemographics = subset(tgDataDemographics, tgDataDemographics$Condition=="CTL")
 
 clinicalDemographics = rbind(bdDemographics, mddDemographics)
@@ -223,47 +212,47 @@ mean(bdDemographics$IDSC); sd(bdDemographics$IDSC)
 mean(mddDemographics$IDSC); sd(mddDemographics$IDSC)
 mean(ctlDemographics$IDSC); sd(ctlDemographics$IDSC)
 #summary(lm(IDSC ~ condition, tgDataDemographics))
-#summary(lm(IDSC ~ relevel(condition, "MDD"), tgDataDemographics))
+#summary(lm(IDSC ~ relevel(condition, "rMDD"), tgDataDemographics))
 anova(lm(IDSC ~ condition, tgDataDemographics))
 
 mean(bdDemographics$GAF); sd(bdDemographics$GAF)
 mean(mddDemographics$GAF); sd(mddDemographics$GAF)
 mean(ctlDemographics$GAF); sd(ctlDemographics$GAF)
 #summary(lm(GAF ~ condition, tgDataDemographics))
-#summary(lm(GAF ~ relevel(condition, "MDD"), tgDataDemographics))
+#summary(lm(GAF ~ relevel(condition, "rMDD"), tgDataDemographics))
 anova(lm(GAF ~ condition, tgDataDemographics))
 
 
 
 # comorbidities
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Dysthymic_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Psychosisoutmood_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Psychosisinmood_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Panic_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Agora_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_AWOPD_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_SocPhobia_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_SpecPhobia_Current)
-#table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_SpecPhobia_Type)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_OCD_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_PTSD_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_GAD_Current)
-#table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_GAD_Current_Note)
-#table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_GAD_Current_Note_Months)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Somat_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Pain_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Hypochon_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_BDD_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Anorexia_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Bulimia_Current)
-table(tgDataDemographics$condition, tgDataDemographics$NERD_V1_Binge_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Dysthymic_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Psychosisoutmood_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Psychosisinmood_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Panic_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Agora_Current)
+table(tgDataDemographics$condition, tgDataDemographics$AWOPD_Current)
+table(tgDataDemographics$condition, tgDataDemographics$SocPhobia_Current)
+table(tgDataDemographics$condition, tgDataDemographics$SpecPhobia_Current)
+#table(tgDataDemographics$condition, tgDataDemographics$SpecPhobia_Type)
+table(tgDataDemographics$condition, tgDataDemographics$OCD_Current)
+table(tgDataDemographics$condition, tgDataDemographics$PTSD_Current)
+table(tgDataDemographics$condition, tgDataDemographics$GAD_Current)
+#table(tgDataDemographics$condition, tgDataDemographics$GAD_Current_Note)
+#table(tgDataDemographics$condition, tgDataDemographics$GAD_Current_Note_Months)
+table(tgDataDemographics$condition, tgDataDemographics$Somat_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Pain_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Hypochon_Current)
+table(tgDataDemographics$condition, tgDataDemographics$BDD_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Anorexia_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Bulimia_Current)
+table(tgDataDemographics$condition, tgDataDemographics$Binge_Current)
 
-tgDataDemographics$numComorbid = (tgDataDemographics$NERD_V1_Dysthymic_Current==3) + (tgDataDemographics$NERD_V1_Psychosisoutmood_Current==3) +  (tgDataDemographics$NERD_V1_Psychosisinmood_Current==3) + (tgDataDemographics$NERD_V1_Panic_Current==3) + (tgDataDemographics$NERD_V1_Agora_Current==3) + (tgDataDemographics$NERD_V1_AWOPD_Current==3) + (tgDataDemographics$NERD_V1_SocPhobia_Current==3) + (tgDataDemographics$NERD_V1_SpecPhobia_Current==3) + (tgDataDemographics$NERD_V1_OCD_Current==3) + (tgDataDemographics$NERD_V1_PTSD_Current==3) + (tgDataDemographics$NERD_V1_GAD_Current==3) + (tgDataDemographics$NERD_V1_Somat_Current==3) + (tgDataDemographics$NERD_V1_Pain_Current==3) + (tgDataDemographics$NERD_V1_Hypochon_Current==3) + (tgDataDemographics$NERD_V1_BDD_Current==3) + (tgDataDemographics$NERD_V1_Anorexia_Current==3) + (tgDataDemographics$NERD_V1_Bulimia_Current==3) + (tgDataDemographics$NERD_V1_Binge_Current==3)
+tgDataDemographics$numComorbid = (tgDataDemographics$Dysthymic_Current==3) + (tgDataDemographics$Psychosisoutmood_Current==3) +  (tgDataDemographics$Psychosisinmood_Current==3) + (tgDataDemographics$Panic_Current==3) + (tgDataDemographics$Agora_Current==3) + (tgDataDemographics$AWOPD_Current==3) + (tgDataDemographics$SocPhobia_Current==3) + (tgDataDemographics$SpecPhobia_Current==3) + (tgDataDemographics$OCD_Current==3) + (tgDataDemographics$PTSD_Current==3) + (tgDataDemographics$GAD_Current==3) + (tgDataDemographics$Somat_Current==3) + (tgDataDemographics$Pain_Current==3) + (tgDataDemographics$Hypochon_Current==3) + (tgDataDemographics$BDD_Current==3) + (tgDataDemographics$Anorexia_Current==3) + (tgDataDemographics$Bulimia_Current==3) + (tgDataDemographics$Binge_Current==3)
 
 table(tgDataDemographics$condition, tgDataDemographics$numComorbid)
 
-bdDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="BD")
-mddDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="MDD")
+bdDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="rBD")
+mddDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="rMDD")
 ctlDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="CTL")
 
 clinicalDemographics = rbind(bdDemographics, mddDemographics)
@@ -314,150 +303,6 @@ anova(lm(numDepressiveEpisodes ~ condition, clinicalSymptomsDF))
 mean(bdDemographics$BD_numEp); sd(bdDemographics$BD_numEp)
 
 
-
-```
-
-
-```{r medication, echo=FALSE, eval=TRUE, results='hide'}
-# See Table below (outside the chunks) for an easy-to-read summary when this markdown document is knitted.
-
-# Medication coding
-# --- Lithium
-tgDataDemographics$Mental_Medication_lithium = 0
-tgDataDemographics$Mental_Medication_lithium[grep("Lithium", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_lithium[grep("Lithiul", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1 # typo
-
-
-# --- Anticonvulsants
-# Depakote # Anticonvulsant and mood stabilizer
-# Lamotrigine # = Lamictal # Anticonvulsant and mood stabilizer
-# Lamictal
-tgDataDemographics$Mental_Medication_anticonvulsants = 0
-tgDataDemographics$Mental_Medication_anticonvulsants[grep("Depakote", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_anticonvulsants[grep("Lamotrigine", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_anticonvulsants[grep("Lamictal", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-
-
-
-
-# --- Antidepressants
-#Bupropion # Antidepressant and smoking cessation aid
-#Buproprion #
-#Wellbutrin # = Bupropion. Antidepressant and smoking cessation aid
-#Wellubtrin # typo
-#Welbutrin # typo
-#Venlafaxine # = Effexor. Antidepressant and nerve pain medication
-#Effexor
-#Cymbalta # Antidepressant and nerve pain medication
-#Remeron # Antidepressant
-#Viibryd # Antidepressant
-
-#Celexa # SSRI
-#Escitilopram # SSRI
-#Fluoxitine # = prozac, sarafem. SSRI
-#Prozac # SSRI
-#Paxil # SSRI
-#Paxyl # typo for paxil. SSRI
-#Zoloft # SSRI
-
-tgDataDemographics$Mental_Medication_antidepressants = 0
-tgDataDemographics$Mental_Medication_antidepressants[grep("Bupropion", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Buproprion", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1 # typo
-tgDataDemographics$Mental_Medication_antidepressants[grep("Wellbutrin", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Wellubtrin", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Welbutrin", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Venlafaxine", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Effexor", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Cymbalta", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Remeron", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Viibryd", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Celexa", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Escitilopram", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Fluoxitine", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Prozac", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Paxil", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Paxyl", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_antidepressants[grep("Zoloft", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-
-
-
-# --- neuroleptics
-#Abilify # Antipsychotic
-#Latuda # Antipsychotic
-#Risperdol # Antipsychotic
-#Seroquel # Antipsychotic
-#serqueal # typo
-
-tgDataDemographics$Mental_Medication_neuroleptics = 0
-tgDataDemographics$Mental_Medication_neuroleptics[grep("Abilify", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_neuroleptics[grep("Latuda", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_neuroleptics[grep("Risperdol", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_neuroleptics[grep("Seroquel", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_neuroleptics[grep("serqueal", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-
-
-
-
-
-# --- stimulants
-# Concerta # Stimulant
-tgDataDemographics$Mental_Medication_stimulant = 0
-tgDataDemographics$Mental_Medication_stimulant[grep("Concerta", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-
-
-
-
-# --- benzodiazepines
-#  http://www.rxlist.com/benzodiazepines-page2/drugs-condition.htm
-#Ativan # = Lorazepam. Sedative
-#Clonazepam # = Klonopin. Sedative
-#Xanex # = Alprazolam # sedative
-#zanex # typo
-
-tgDataDemographics$Mental_Medication_benzodiazepines = 0
-tgDataDemographics$Mental_Medication_benzodiazepines[grep("Ativan", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_benzodiazepines[grep("Clonazepam", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_benzodiazepines[grep("Xanex", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_benzodiazepines[grep("Zanex", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-
-
-# --- sedative-hypnotics and anxiolytics
-# Ambien # = Zolpidem. Sedative-hypnotic
-# Buspar # Antianxiety
-# busbar # typo. should be Buspar / Busiprone. Antianxiety
-# Buspirone # Antianxiety
-
-# Vistaril # Antihistamine
-# Vistarol # Antihistamine (sedative. anxiety?)
-
-tgDataDemographics$Mental_Medication_sedative_hypnotics = 0
-tgDataDemographics$Mental_Medication_sedative_hypnotics[grep("Ambien", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_sedative_hypnotics[grep("Buspar", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_sedative_hypnotics[grep("busbar", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_sedative_hypnotics[grep("Buspirone", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_sedative_hypnotics[grep("Vistaril", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-tgDataDemographics$Mental_Medication_sedative_hypnotics[grep("Vistarol", tgDataDemographics$Mental_Medication, ignore.case = TRUE)] = 1
-
-
-
-
-
-tgDataDemographics$Mental_Medication_total = tgDataDemographics$Mental_Medication_lithium +
-  tgDataDemographics$Mental_Medication_anticonvulsants +
-  tgDataDemographics$Mental_Medication_antidepressants + 
-  tgDataDemographics$Mental_Medication_neuroleptics + 
-  tgDataDemographics$Mental_Medication_stimulant +
-  tgDataDemographics$Mental_Medication_benzodiazepines +
-  tgDataDemographics$Mental_Medication_sedative_hypnotics
-
-
-
-
-bdDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="BD")
-mddDemographics = subset(tgDataDemographics, tgDataDemographics$condition=="MDD")
-clinicalDemographics = rbind(bdDemographics, mddDemographics)
-clinicalDemographics$condition = factor(clinicalDemographics$condition)
-
 ## number of medications
 
 #mean(bdDemographics$Mental_Medication_total); sd(bdDemographics$Mental_Medication_total)
@@ -478,35 +323,7 @@ clinicalDemographics$condition = factor(clinicalDemographics$condition)
 
 
 
-
-
-
-# --- check?
-# 
-# Vicodin # = narcotic pain med
-# Magnesium
-
-## --- ignore?
-#melatonin / melatonon
-#marijuana
-#Cipro # = Ciprofloxacin. Antibiotic
-#Macrodantin # Antibiotic??
-#Seasonale # contraceptive
-
-# write.csv(tgDataDemographics[,c("Mental_Medication", "Mental_Medication_lithium", 
-#                                 "Mental_Medication_anticonvulsants", 
-#                                 "Mental_Medication_neuroleptics", 
-#                                 "Mental_Medication_stimulant",
-#                                 "Mental_Medication_antidepressants", 
-#                                 "Mental_Medication_benzodiazepines", 
-#                                 "Mental_Medication_sedative_hypnotics")], 
-#           "medication_output.csv", row.names=F)
-
-
-
-
 ```
-
 
 
 # Demographics
@@ -516,7 +333,7 @@ The following code outputs Table 1: Demographic and Clinical Characteristics
 
 
 
-Descriptives | BD <br> (n=`r nrow(bdDemographics)`) | MDD <br> (n=`r nrow(mddDemographics)`) | CTL <br> (n=`r nrow(ctlDemographics)`) | Statistic
+Descriptives | rBD <br> (n=`r nrow(bdDemographics)`) | rMDD <br> (n=`r nrow(mddDemographics)`) | CTL <br> (n=`r nrow(ctlDemographics)`) | Statistic
 --- | --- | --- | --- | ---
 **Demographics** | &nbsp; |  &nbsp; | &nbsp; |  &nbsp;
 Age (Yrs) | `r format(mean(bdDemographics$Age), digits=4)` (`r format(sd(bdDemographics$Age), digits=4)`) | `r format(mean(mddDemographics$Age), digits=4)` (`r format(sd(mddDemographics$Age), digits=4)`) | `r format(mean(ctlDemographics$Age), digits=4)` (`r format(sd(ctlDemographics$Age), digits=4)`) | F=`r anova(lm(Age ~ condition, tgDataDemographics))$"F value"[1]`
@@ -558,7 +375,7 @@ Illness Duration (Yrs) | `r format(mean(bdDemographics$BD_durationMonth)/12, dig
 &nbsp;&nbsp;&nbsp; benzodiazepines | `r format(sum(bdDemographics$Mental_Medication_benzodiazepines==1)/nrow(bdDemographics)*100, digits=4)`% |  `r format(sum(mddDemographics$Mental_Medication_benzodiazepines==1)/nrow(mddDemographics)*100, digits=4)`% | --- |  &nbsp;
 &nbsp;&nbsp;&nbsp; sedative-hypnotics and other anxiolytics | `r format(sum(bdDemographics$Mental_Medication_sedative_hypnotics==1)/nrow(bdDemographics)*100, digits=4)`% |  `r format(sum(mddDemographics$Mental_Medication_sedative_hypnotics==1)/nrow(mddDemographics)*100, digits=4)`% | --- |  &nbsp;
 
-Note: BD=Bipolar disorder group; MDD=Major depressive disorder group; CTL=Healthy control group; Employed=Employed full-time or part-time; Partnered=Married or in a relationship; YMRS=Young Mania Rating Scale; IDS-C=Inventory to Diagnose Depression; GAF=Global Assessment of Functioning; Age at Onset=Age of first depressive or manic episode; # Comorbid Disorders=the number of current DSM-IV-TR Axis I comorbidities; % Comorbid Disorders=at least one DSM-IV-TR Axis I comorbidity; # Medications=the number of psychotropic medications currently taken (including anticonvulsants, lithium, neuroleptics, stimulants, antidepressants, benzodiazepines, and sedative-hypnotics and other anxiolytics); Mean values are displayed with standard deviations in parentheses where applicable. 
+Note: rBD=remitted Bipolar Disorder group; rMDD=remitted Major Depressive Disorder group; CTL=Healthy control group; Employed=Employed full-time or part-time; Partnered=Married or in a relationship; YMRS=Young Mania Rating Scale; IDS-C=Inventory of Depression Symptomatology, Clinician Rating; GAF=Global Assessment of Functioning; Age at Onset=Age of first depressive or manic episode; # Comorbid Disorders=the number of current DSM-IV-TR Axis I comorbidities; % Comorbid Disorders=at least one DSM-IV-TR Axis I comorbidity; # Medications=the number of psychotropic medications currently taken (including anticonvulsants, lithium, neuroleptics, stimulants, antidepressants, benzodiazepines, and sedative-hypnotics and other anxiolytics); Mean values are given with standard deviations in parentheses. 
 
 
 
@@ -566,13 +383,9 @@ Note: BD=Bipolar disorder group; MDD=Major depressive disorder group; CTL=Health
 
 
 
+## Trust Game
 
-
-
-
-# Trust Game
-
-Summary:
+#### Summary:
 
 - P plays the role of the trustee.
 - Investor chooses to invest $X, it gets multipled by 3, P chooses how much of $3X to return.
@@ -584,9 +397,9 @@ Investor properties:
 * "Learning Rate" decreases over rounds (i.e. the same relative repayment will affect the program more in earlier rounds than in later rounds)
 * Learning Rate is double for negative prediction errors (loss aversion)
 * Minimum investment: $1. (This is so Ps don't get trapped with no way to repair). This is a very kind hearted investor.
-* On round 6, investor will increase his investment by 50% of the difference between his current investment and the max. For example, if current investment is $2, investor will increase it by 50% of (10-2), or $4, to $6. This is also to encourage cooperation.
+* On round 6, investor will additionally increase his investment by 50% of the difference between his current investment and the max. For example, if current investment is $2, investor will increase it by 50% of (10-2), or $4, to $6. This is also to encourage cooperation.
 
-In equations, we have: 
+#### In equations, we have: 
 
 * $investment(t)$ $\equiv$ Investment on round $t$
 * $repayment(t)$ $\equiv$ Repayment (by participant) on round $t$
@@ -615,54 +428,55 @@ Capping investment (minimum and maximum values are 1 and 10 respectively)
   $$investment(t) = \max(\min(investment(t), 10), 1)$$ 
 
 
+#### In code, we have:
 
-```{r Trust-Game-Matlab-Code, echo=FALSE, eval=FALSE}
+```{r Trust-Game-Matlab-Code, echo=TRUE, eval=FALSE}
+## This section contains the relevant excerpt from the MATLAB code for the experiment. 
+## The full Matlab file is available on the Github repository.
 
-## This section contains the relevant excerpt from the MATLAB code for the experiment. The full Matlab file is available on the Github repository.
+        MULTIPLIER = 3;
+        expectedValueRatio = 1.2;
+% --- deciding investment amount --- %
+        %Variable decreasing learning rate: 
+        %for positive PE, uniformly drawn between [0.5 and 0.75] on first round to [0.25 and 0.5] on last round
+        %for negative PE, uniformly drawn between [1.00 and 1.25] on each round to [0.5 to 0.75] on last round
 
-#         MULTIPLIER = 3;
-# expectedValueRatio = 1.2;
-# % --- deciding investment amount --- %
-#         %Variable decreasing learning rate: 
-#         %for positive PE, uniformly drawn between [0.5 and 0.75] on first round to [0.25 and 0.5] on last round
-#         %for negative PE, uniformly drawn between [1.00 and 1.25] on each round to [0.5 to 0.75] on last round
-# 
-#         learningRateLowerBound = (trialNumber*(.25) + (10-trialNumber)*(.5))/10;
-#         randProp = rand();
-# 
-#         if (trialNumber==1)
-#             investments(trialNumber)=5; % start with initial investment of 5.
-#         else
-#             if((repayments(trialNumber-1) - expectedValueRatio*investments(trialNumber-1)) >0)
-#                 learningRate(trialNumber) = learningRateLowerBound + (randProp * .25)
-#             else
-#                 learningRate(trialNumber) = 2*learningRateLowerBound + (randProp * .25)
-#             end
-# 
-#             if (trialNumber==6)
-#             % Boost
-#             investments(trialNumber) = investments(trialNumber-1) + ...
-#                 learningRate(trialNumber)*(repayments(trialNumber-1) - expectedValueRatio*investments(trialNumber-1)) +...
-#                 .5*(10 - investments(trialNumber-1));
-#             else
-#             investments(trialNumber) = investments(trialNumber-1) + ...
-#                 learningRate(trialNumber)*(repayments(trialNumber-1) - expectedValueRatio*investments(trialNumber-1));
-#             end
-#         end
-#             % Cap it between 0 and 10
-#             investments(trialNumber) = max(min(investments(trialNumber),10),1);
-#             % Round to nearest 0.50
-#             investments(trialNumber) = round(investments(trialNumber)*2)/2;
-#             investment=investments(trialNumber);
+        learningRateLowerBound = (trialNumber*(.25) + (10-trialNumber)*(.5))/10;
+        randProp = rand();
+
+        if (trialNumber==1)
+            investments(trialNumber)=5; % start with initial investment of 5.
+        else
+            if((repayments(trialNumber-1) - expectedValueRatio*investments(trialNumber-1)) >0)
+                learningRate(trialNumber) = learningRateLowerBound + (randProp * .25)
+            else
+                learningRate(trialNumber) = 2*learningRateLowerBound + (randProp * .25)
+            end
+
+            if (trialNumber==6)
+            % Boost
+            investments(trialNumber) = investments(trialNumber-1) + ...
+                learningRate(trialNumber)*(repayments(trialNumber-1) - expectedValueRatio*investments(trialNumber-1)) +...
+                .5*(10 - investments(trialNumber-1));
+            else
+            investments(trialNumber) = investments(trialNumber-1) + ...
+                learningRate(trialNumber)*(repayments(trialNumber-1) - expectedValueRatio*investments(trialNumber-1));
+            end
+        end
+            % Cap it between 0 and 10
+            investments(trialNumber) = max(min(investments(trialNumber),10),1);
+            % Round to nearest 0.50
+            investments(trialNumber) = round(investments(trialNumber)*2)/2;
+            investment=investments(trialNumber);
 ```
 
-# Results
+## Results
 
-## Average repayment rate
+### Average repayment rate
 
-Because how much the trustee chooses to return ($0-\$3X) depends on how much gets invested (\$X), I defined a repayment rate as a proportion of the amount investment. So repayment rate goes from 0-3. Below are the mean repayment rates as a function of the round played. (The "amount the investor expects" is 1.2, plotted as a dashed line).
+Because how much the trustee chooses to return ($0-\$3X) depends on how much gets invested (\$X), we defined a repayment rate as a proportion of the amount investment. So repayment rate goes from 0-3. Below are the mean repayment rates as a function of the round played. (The "amount the investor expects" is 1.2, plotted as a dashed line).
 
-As you can see, the average repayment rate is very high! People tended to default to cooperation. And the average MDD and BD repayment rates are higher than the control (MDD > CTL is not significant, BD > CTL is significant). (More in the modeling section below.)
+As you can see, the average repayment rate is very high! People tended to default to cooperation. And the average rMDD and rBD repayment rates are higher than the control (rMDD > CTL is not significant, rBD > CTL is significant). (More in the modeling section below.)
 
 Below that graph are more fine-grained histograms:
 
@@ -670,15 +484,13 @@ Below that graph are more fine-grained histograms:
 ```{r plotting-1, echo=FALSE, fig.width=7, fig.height=4.5, warning=FALSE, message=FALSE}
 
 tgSum <- tgData %>%
-  group_by(condition, round) %>%
+  group_by(ConditionBDBase, round) %>%
   summarize(sem = sem(repaymentRate), repaymentRate = mean(repaymentRate), n=n())
-tgSum$Condition = factor(tgSum$condition, levels=c("BD", "MDD", "CTL"), labels=c("rBD", "rMDD", "CTL"))
 
-tgData$Condition = factor(tgData$condition, levels=c("BD", "MDD", "CTL"), labels=c("rBD", "rMDD", "CTL"))
 
-ggplot(tgSum, aes(x=round, y=repaymentRate, color=Condition, group=Condition, shape=Condition)) + 
-  #geom_point(aes(color=Condition), alpha=1/4, position=position_jitter(width=.2,height=0), data=tgData) +
-  geom_line() + geom_point(size=3) + geom_smooth(linetype=0, alpha=0.25, level=0.95, aes(fill=Condition), data=tgData) +
+ggplot(tgSum, aes(x=round, y=repaymentRate, color=ConditionBDBase, group=ConditionBDBase, shape=ConditionBDBase)) + 
+  #geom_point(aes(color=ConditionBDBase), alpha=1/4, position=position_jitter(width=.2,height=0), data=tgData) +
+  geom_line() + geom_point(size=3) + geom_smooth(linetype=0, alpha=0.25, level=0.95, aes(fill=ConditionBDBase), data=tgData) +
 #  geom_errorbar(aes(ymin=repaymentRate-sem, ymax=repaymentRate+sem)) +
   geom_hline(yintercept=1.2, linetype="dashed") + ylab("Repayment Rate") + 
   scale_y_continuous(breaks=c(1.2, 1.4, 1.6, 1.8)) +
@@ -691,13 +503,12 @@ ggplot(tgSum, aes(x=round, y=repaymentRate, color=Condition, group=Condition, sh
 
 
 
-# #tgSum = summarySE(tgData, measurevar="repaymentRate", groupvars=c("condition", "round"))
-# #tgSum$Condition = factor(tgSum$condition, levels=c("BD", "MDD", "CTL"))
-# # ggplot(tgSum, aes(x=round, y=repaymentRate, color=condition, group=condition, shape=condition)) + 
+# #tgSum = summarySE(tgData, measurevar="repaymentRate", groupvars=c("ConditionBDBase", "round"))
+# # ggplot(tgSum, aes(x=round, y=repaymentRate, color=ConditionBDBase, group=ConditionBDBase, shape=ConditionBDBase)) + 
 # #   geom_line() + geom_point(size=3) + 
 # #   geom_hline(yintercept=1.2, linetype="dashed") + ylab("Repayment Rate") + 
 # #   scale_x_continuous(breaks=c(1:10)) + xlab("Round") + my_default_theme
-# ggplot(tgSum, aes(x=round, y=repaymentRate, color=Condition, group=Condition, shape=Condition)) + 
+# ggplot(tgSum, aes(x=round, y=repaymentRate, color=ConditionBDBase, group=ConditionBDBase, shape=ConditionBDBase)) + 
 #   geom_line() + geom_point(size=3) + 
 #   geom_hline(yintercept=1.2, linetype="dashed") + ylab("Repayment Rate") + 
 #   scale_x_continuous(breaks=c(1:10)) + xlab("Round") + my_default_theme
@@ -726,14 +537,14 @@ ggplot(tgData, aes(x=repaymentRate, fill=condition)) + geom_density(alpha=.3) +
 
 
 
-## Modeling
+### Modeling
 
-The models I fitted were simple linear models predicting repaymentRate (how much the participant repaid / how much the participant was entrusted with).
+The models we fitted were simple linear models predicting repaymentRate (how much the participant repaid / how much the participant was entrusted with).
 
 ```{r main-results-1, echo=FALSE, results='hide'}
 # condition has "CTL" as the base, comparison group
-# conditionRelevel is the same as 'condition' except that MDD is the base group. This allows a BD>MDD comparison
-tgData$conditionRelevel = relevel(tgData$Condition, "MDD")
+# conditionRelevel is the same as 'condition' except that rMDD is the base group. This allows a rBD>rMDD comparison
+tgData$conditionRelevel = relevel(tgData$ConditionBDBase, "rMDD")
 
 
 ### with round number
@@ -745,13 +556,13 @@ summary(simpleModWithRound) # note that the coeffs on condition are SIMPLE effec
 simpleMod = lmer(repaymentRate~(condition) + (1 + round|subjectID), tgData)
 anova(simpleModWithRound, simpleMod) # p = .52; not significant; remove round as a fixed effect.
 
-## looking at BD>MDD
+## looking at rBD>rMDD
 ##simpleModWithRound = lmer(repaymentRate~round*(conditionRelevel) + (1 + round|subjectID), tgData)
 ##summary(simpleModWithRound) # note that the coeffs on condition are SIMPLE effects at round=0; doesn't make sense to interpret.
 ```
 
 
-First, I modeled the interaction of "round" and clinical history, but turns out that "round" has no significant interactions with condition nor any simple effect ($\chi^2(`r anova(simpleModWithRound, simpleMod)$"Chi Df"[2]`)$=`r anova(simpleModWithRound, simpleMod)$Chisq[2]`; p=`r anova(simpleModWithRound, simpleMod)$"Pr(>Chisq)"[2]`). That means that on average, individuals tended to keep the same repayment rate over the consecutive rounds of the game.
+First, we modeled the interaction of "round" and clinical history, but turns out that "round" has no significant interactions with condition nor any simple effect ($\chi^2(`r anova(simpleModWithRound, simpleMod)$"Chi Df"[2]`)$=`r anova(simpleModWithRound, simpleMod)$Chisq[2]`; p=`r anova(simpleModWithRound, simpleMod)$"Pr(>Chisq)"[2]`). That means that on average, individuals tended to keep the same repayment rate over the consecutive rounds of the game.
 
 
 
@@ -770,7 +581,7 @@ simpleMod = summary(lmer(repaymentRate~(condition) + (1 + round|subjectID), tgDa
 ## In general I feel that we should be moving away from parametric statistics and Null Hypothesis Statistical Testing (with p values and all that) to say, Bayesian methods. But in the meantime, I just hope to be clear with the assumptions that I have to make with regard to satisfying field conventions. Hopefully methods will improve in the future.
 
 
-# 95% CIs and p value for BD>CTL contrast:
+# 95% CIs and p value for rBD>CTL contrast:
 # point estimate: b = 0.30330
 # lower bound on 95% CI: 0.30330 - 1.96*0.12474 ## note: this is using a z approximation, hence the multiplier is 1.96
 # upper bound on 95% CI: 0.30330 + 1.96*0.12474
@@ -786,7 +597,7 @@ simpleMod = summary(lmer(repaymentRate~(condition) + (1 + round|subjectID), tgDa
 #   p value: simpleMod$coefficients[2,5] # if using lmerTest
 
 
-# similarly, for the MDD>CTL contrast
+# similarly, for the rMDD>CTL contrast
 # point estimate: b = 0.24069
 # lower bound on 95% CI: 0.24069 - 1.96*0.12269 ## note: this is using a z approximation, hence the multiplier is 1.96
 # upper bound on 95% CI: 0.24069 + 1.96*0.12269
@@ -794,7 +605,7 @@ simpleMod = summary(lmer(repaymentRate~(condition) + (1 + round|subjectID), tgDa
 
 
 
-## to look at BD-MDD repayment rate
+## to look at rBD-rMDD repayment rate
 simpleMod2 = summary(lmer(repaymentRate~(conditionRelevel) + (1 + round|subjectID), tgData))
 #simpleMod2
 #2*(1-pt(0.515, 80))
@@ -807,7 +618,7 @@ simpleMod2 = summary(lmer(repaymentRate~(conditionRelevel) + (1 + round|subjectI
 
 
 # controlling for comorbidities, as suggested by a rev, # p = .89
-#tgData$numComorbid = (tgData$NERD_V1_Dysthymic_Current==3) + (tgData$NERD_V1_Psychosisoutmood_Current==3) +  (tgData$NERD_V1_Psychosisinmood_Current==3) + (tgData$NERD_V1_Panic_Current==3) + (tgData$NERD_V1_Agora_Current==3) + (tgData$NERD_V1_AWOPD_Current==3) + (tgData$NERD_V1_SocPhobia_Current==3) + (tgData$NERD_V1_SpecPhobia_Current==3) + (tgData$NERD_V1_OCD_Current==3) + (tgData$NERD_V1_PTSD_Current==3) + (tgData$NERD_V1_GAD_Current==3) + (tgData$NERD_V1_Somat_Current==3) + (tgData$NERD_V1_Pain_Current==3) + (tgData$NERD_V1_Hypochon_Current==3) + (tgData$NERD_V1_BDD_Current==3) + (tgData$NERD_V1_Anorexia_Current==3) + (tgData$NERD_V1_Bulimia_Current==3) + (tgData$NERD_V1_Binge_Current==3)
+#tgData$numComorbid = (tgData$Dysthymic_Current==3) + (tgData$Psychosisoutmood_Current==3) +  (tgData$Psychosisinmood_Current==3) + (tgData$Panic_Current==3) + (tgData$Agora_Current==3) + (tgData$AWOPD_Current==3) + (tgData$SocPhobia_Current==3) + (tgData$SpecPhobia_Current==3) + (tgData$OCD_Current==3) + (tgData$PTSD_Current==3) + (tgData$GAD_Current==3) + (tgData$Somat_Current==3) + (tgData$Pain_Current==3) + (tgData$Hypochon_Current==3) + (tgData$BDD_Current==3) + (tgData$Anorexia_Current==3) + (tgData$Bulimia_Current==3) + (tgData$Binge_Current==3)
 #simpleMod_comorbid = lmer(repaymentRate ~ condition + numComorbid + (1 + round|subjectID), tgData)
 #anova(simpleMod_comorbid, simpleMod)
 
@@ -821,7 +632,7 @@ simpleMod2 = summary(lmer(repaymentRate~(conditionRelevel) + (1 + round|subjectI
 ```
 
 
-Next, I fit a simple mixed effects model predicting the repayment rate with the clinical histroy ("condition") as a fixed effect, and random intercepts and slopes (on round) by participant. We see that on average, both BD and MDD participants had a higher repayment rate than CTL participants. There was no difference between MDD and CTL.
+Next, we fit a simple mixed effects model predicting the repayment rate with the clinical histroy ("condition") as a fixed effect, and random intercepts and slopes (on round) by participant. We see that on average, both rBD and rMDD participants had a higher repayment rate than CTL participants. There was no difference between rMDD and CTL.
 
 The following model has a marginal $R^2$ of `r r.squaredGLMM(lme4::lmer(repaymentRate~(condition) + (1|subjectID), tgData))[1]` and a conditional $R^2$ of `r r.squaredGLMM(lme4::lmer(repaymentRate~(condition) + (1|subjectID), tgData))[2]`, after Nakagawa & Schielzeth (2013).
 
@@ -831,18 +642,18 @@ lmer(repaymentRate ~ condition + (1 + round | subjectID), tgData)
 
 Regressor | b (SE) | 95% CI | t | p
 --- | --- | --- | --- | ---
-BD (> CTL) | `r simpleMod$coefficients[2,1]` (`r simpleMod$coefficients[2,2]`) | [`r simpleMod$coefficients[2,1] - 1.96*simpleMod$coefficients[2,2]`, `r simpleMod$coefficients[2,1] + 1.96*simpleMod$coefficients[2,2]`] | t(`r simpleMod$coefficients[2,3]`)=`r simpleMod$coefficients[2,4]` | p=`r simpleMod$coefficients[2,5]`
-MDD (> CTL) | `r simpleMod$coefficients[3,1]` (`r simpleMod$coefficients[3,2]`) | [`r simpleMod$coefficients[3,1] - 1.96*simpleMod$coefficients[3,2]`, `r simpleMod$coefficients[3,1] + 1.96*simpleMod$coefficients[3,2]`] | t(`r simpleMod$coefficients[3,3]`)=`r simpleMod$coefficients[3,4]` | p=`r simpleMod$coefficients[3,5]`
+rBD (> CTL) | `r simpleMod$coefficients[2,1]` (`r simpleMod$coefficients[2,2]`) | [`r simpleMod$coefficients[2,1] - 1.96*simpleMod$coefficients[2,2]`, `r simpleMod$coefficients[2,1] + 1.96*simpleMod$coefficients[2,2]`] | t(`r simpleMod$coefficients[2,3]`)=`r simpleMod$coefficients[2,4]` | p=`r simpleMod$coefficients[2,5]`
+rMDD (> CTL) | `r simpleMod$coefficients[3,1]` (`r simpleMod$coefficients[3,2]`) | [`r simpleMod$coefficients[3,1] - 1.96*simpleMod$coefficients[3,2]`, `r simpleMod$coefficients[3,1] + 1.96*simpleMod$coefficients[3,2]`] | t(`r simpleMod$coefficients[3,3]`)=`r simpleMod$coefficients[3,4]` | p=`r simpleMod$coefficients[3,5]`
 &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-BD (> MDD) | `r simpleMod2$coefficients[2,1]` (`r simpleMod2$coefficients[2,2]`) | [`r simpleMod2$coefficients[2,1] - 1.96*simpleMod2$coefficients[2,2]`, `r simpleMod2$coefficients[2,1] + 1.96*simpleMod2$coefficients[2,2]`] | t(`r simpleMod2$coefficients[2,3]`)=`r simpleMod2$coefficients[2,4]` | p=`r simpleMod2$coefficients[2,5]`
+rBD (> rMDD) | `r simpleMod2$coefficients[2,1]` (`r simpleMod2$coefficients[2,2]`) | [`r simpleMod2$coefficients[2,1] - 1.96*simpleMod2$coefficients[2,2]`, `r simpleMod2$coefficients[2,1] + 1.96*simpleMod2$coefficients[2,2]`] | t(`r simpleMod2$coefficients[2,3]`)=`r simpleMod2$coefficients[2,4]` | p=`r simpleMod2$coefficients[2,5]`
 
-Top: Predicting repayment rate. Condition is a 3 level categorical variable: the top two lines are the values of the coefficients in the same model with CTL as the base, comparison group. The last line is the same model but with the categorical variable releveled to have MDD as the base, comparison group, in order to examine the BD>MDD contrast.
-
-
+Top: Predicting repayment rate. Condition is a 3 level categorical variable: the top two lines are the values of the coefficients in the same model with CTL as the base, comparison group. The last line is the same model but with the categorical variable releveled to have rMDD as the base, comparison group, in order to examine the rBD>rMDD contrast.
 
 
 
-## Summary statistics across rounds
+
+
+### Summary statistics across rounds
 
 ```{r results-summed-across-rounds, echo=FALSE, eval=TRUE, results='hide'}
 
@@ -884,18 +695,18 @@ tgTotal$totalMoneyKeptByInvestor = 100 - tgTotal$investment + tgTotal$repayment
 modelTotalInvested = lm(investment ~ condition, tgTotal)
 
 summary(modelTotalInvested)$coeff
-#BD
+#rBD
 #CI lower 12.414 - 1.96*6.007
 #CI upper 12.414 + 1.96*6.007
 
-#MDD
+#rMDD
 #CI lower 5.943 - 1.96*5.908
 #CI upper 5.943 + 1.96*5.908
 
 
 modelTotalRepaid = lm(repayment ~ condition, tgTotal)
 summary(modelTotalRepaid)
-#BD
+#rBD
 #CI lower 34.72 - 1.96*16.25
 #CI upper 34.72 + 1.96*16.25
 
@@ -911,7 +722,7 @@ summary(modelTotalKeptByI)
 ```
 
 
-Next, I calculated four summary statistics:
+Next, we calculated four summary statistics:
 
 - the total amount that the investor program invested in the participant, 
 - the total amount that the participant repaid,
@@ -921,31 +732,31 @@ Next, I calculated four summary statistics:
 Note that these are all correlated, and also correlated with the repaymentRate, especially since the investor program is deterministic (up to a pseudo-random learning rate).
 
 
-As expected, we find that BD > CTL for total amount invested, and total amount repaid, but not for total amount made in total. None of the other comparisons (MDD > CTL or BD > MDD) turned out significant.
+As expected, we find that rBD > CTL for total amount invested, and total amount repaid, but not for total amount made in total. None of the other comparisons (rMDD > CTL or rBD > rMDD) turned out significant.
 
 
 
 
 Regressors | b (SE) | 95% CI | t | p
 --- | --- | --- | --- | ---
-Predicting Total Amount Invested by I | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-BD (> CTL) | `r summary(modelTotalInvested)$coeff[2,1]` (`r summary(modelTotalInvested)$coeff[2,2]`) | [`r summary(modelTotalInvested)$coeff[2,1] - 1.96*summary(modelTotalInvested)$coeff[2,2]`, `r summary(modelTotalInvested)$coeff[2,1] + 1.96*summary(modelTotalInvested)$coeff[2,2]`] | t=`r summary(modelTotalInvested)$coeff[2,3]` | p=`r summary(modelTotalInvested)$coeff[2,4]`
-MDD (> CTL) | `r summary(modelTotalInvested)$coeff[3,1]` (`r summary(modelTotalInvested)$coeff[3,2]`) | [`r summary(modelTotalInvested)$coeff[3,1] - 1.96*summary(modelTotalInvested)$coeff[3,2]`, `r summary(modelTotalInvested)$coeff[3,1] + 1.96*summary(modelTotalInvested)$coeff[3,2]`] | t=`r summary(modelTotalInvested)$coeff[3,3]` | p=`r summary(modelTotalInvested)$coeff[3,4]`
+Predicting Total Amount Invested by Investor | &nbsp; | &nbsp; | &nbsp; | &nbsp;
+rBD (> CTL) | `r summary(modelTotalInvested)$coeff[2,1]` (`r summary(modelTotalInvested)$coeff[2,2]`) | [`r summary(modelTotalInvested)$coeff[2,1] - 1.96*summary(modelTotalInvested)$coeff[2,2]`, `r summary(modelTotalInvested)$coeff[2,1] + 1.96*summary(modelTotalInvested)$coeff[2,2]`] | t=`r summary(modelTotalInvested)$coeff[2,3]` | p=`r summary(modelTotalInvested)$coeff[2,4]`
+rMDD (> CTL) | `r summary(modelTotalInvested)$coeff[3,1]` (`r summary(modelTotalInvested)$coeff[3,2]`) | [`r summary(modelTotalInvested)$coeff[3,1] - 1.96*summary(modelTotalInvested)$coeff[3,2]`, `r summary(modelTotalInvested)$coeff[3,1] + 1.96*summary(modelTotalInvested)$coeff[3,2]`] | t=`r summary(modelTotalInvested)$coeff[3,3]` | p=`r summary(modelTotalInvested)$coeff[3,4]`
 $R^2$ | `r summary(modelTotalInvested)$r.squared` | &nbsp; | &nbsp; | &nbsp;
 &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-Predicting Total Amount Repaid by P | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-BD (> CTL) | `r summary(modelTotalRepaid)$coeff[2,1]` (`r summary(modelTotalRepaid)$coeff[2,2]`) | [`r summary(modelTotalRepaid)$coeff[2,1] - 1.96*summary(modelTotalRepaid)$coeff[2,2]`, `r summary(modelTotalRepaid)$coeff[2,1] + 1.96*summary(modelTotalRepaid)$coeff[2,2]`] | t=`r summary(modelTotalRepaid)$coeff[2,3]` | p=`r summary(modelTotalRepaid)$coeff[2,4]`
-MDD (> CTL) | `r summary(modelTotalRepaid)$coeff[3,1]` (`r summary(modelTotalRepaid)$coeff[3,2]`) | [`r summary(modelTotalRepaid)$coeff[3,1] - 1.96*summary(modelTotalRepaid)$coeff[3,2]`, `r summary(modelTotalRepaid)$coeff[3,1] + 1.96*summary(modelTotalRepaid)$coeff[3,2]`] | t=`r summary(modelTotalRepaid)$coeff[3,3]` | p=`r summary(modelTotalRepaid)$coeff[3,4]`
+Predicting Total Amount Repaid by Participant | &nbsp; | &nbsp; | &nbsp; | &nbsp;
+rBD (> CTL) | `r summary(modelTotalRepaid)$coeff[2,1]` (`r summary(modelTotalRepaid)$coeff[2,2]`) | [`r summary(modelTotalRepaid)$coeff[2,1] - 1.96*summary(modelTotalRepaid)$coeff[2,2]`, `r summary(modelTotalRepaid)$coeff[2,1] + 1.96*summary(modelTotalRepaid)$coeff[2,2]`] | t=`r summary(modelTotalRepaid)$coeff[2,3]` | p=`r summary(modelTotalRepaid)$coeff[2,4]`
+rMDD (> CTL) | `r summary(modelTotalRepaid)$coeff[3,1]` (`r summary(modelTotalRepaid)$coeff[3,2]`) | [`r summary(modelTotalRepaid)$coeff[3,1] - 1.96*summary(modelTotalRepaid)$coeff[3,2]`, `r summary(modelTotalRepaid)$coeff[3,1] + 1.96*summary(modelTotalRepaid)$coeff[3,2]`] | t=`r summary(modelTotalRepaid)$coeff[3,3]` | p=`r summary(modelTotalRepaid)$coeff[3,4]`
 $R^2$ | `r summary(modelTotalRepaid)$r.squared` | &nbsp; | &nbsp; | &nbsp;
 &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-Predicting Total Amount Kept by P | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-BD (> CTL) | `r summary(modelTotalKeptByP)$coeff[2,1]` (`r summary(modelTotalKeptByP)$coeff[2,2]`) | [`r summary(modelTotalKeptByP)$coeff[2,1] - 1.96*summary(modelTotalKeptByP)$coeff[2,2]`, `r summary(modelTotalKeptByP)$coeff[2,1] + 1.96*summary(modelTotalKeptByP)$coeff[2,2]`] | t=`r summary(modelTotalKeptByP)$coeff[2,3]` | p=`r summary(modelTotalKeptByP)$coeff[2,4]`
-MDD (> CTL) | `r summary(modelTotalKeptByP)$coeff[3,1]` (`r summary(modelTotalKeptByP)$coeff[3,2]`) | [`r summary(modelTotalKeptByP)$coeff[3,1] - 1.96*summary(modelTotalKeptByP)$coeff[3,2]`, `r summary(modelTotalKeptByP)$coeff[3,1] + 1.96*summary(modelTotalKeptByP)$coeff[3,2]`] | t=`r summary(modelTotalKeptByP)$coeff[3,3]` | p=`r summary(modelTotalKeptByP)$coeff[3,4]`
+Predicting Total Amount Kept by Participant | &nbsp; | &nbsp; | &nbsp; | &nbsp;
+rBD (> CTL) | `r summary(modelTotalKeptByP)$coeff[2,1]` (`r summary(modelTotalKeptByP)$coeff[2,2]`) | [`r summary(modelTotalKeptByP)$coeff[2,1] - 1.96*summary(modelTotalKeptByP)$coeff[2,2]`, `r summary(modelTotalKeptByP)$coeff[2,1] + 1.96*summary(modelTotalKeptByP)$coeff[2,2]`] | t=`r summary(modelTotalKeptByP)$coeff[2,3]` | p=`r summary(modelTotalKeptByP)$coeff[2,4]`
+rMDD (> CTL) | `r summary(modelTotalKeptByP)$coeff[3,1]` (`r summary(modelTotalKeptByP)$coeff[3,2]`) | [`r summary(modelTotalKeptByP)$coeff[3,1] - 1.96*summary(modelTotalKeptByP)$coeff[3,2]`, `r summary(modelTotalKeptByP)$coeff[3,1] + 1.96*summary(modelTotalKeptByP)$coeff[3,2]`] | t=`r summary(modelTotalKeptByP)$coeff[3,3]` | p=`r summary(modelTotalKeptByP)$coeff[3,4]`
 $R^2$ | `r summary(modelTotalKeptByP)$r.squared` | &nbsp; | &nbsp; | &nbsp;
 &nbsp; | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-Predicting Total Amount Kept by I | &nbsp; | &nbsp; | &nbsp; | &nbsp;
-BD (> CTL) | `r summary(modelTotalKeptByI)$coeff[2,1]` (`r summary(modelTotalKeptByI)$coeff[2,2]`) | [`r summary(modelTotalKeptByI)$coeff[2,1] - 1.96*summary(modelTotalKeptByI)$coeff[2,2]`, `r summary(modelTotalKeptByI)$coeff[2,1] + 1.96*summary(modelTotalKeptByI)$coeff[2,2]`] | t=`r summary(modelTotalKeptByI)$coeff[2,3]` | p=`r summary(modelTotalKeptByI)$coeff[2,4]`
-MDD (> CTL) | `r summary(modelTotalKeptByI)$coeff[3,1]` (`r summary(modelTotalKeptByI)$coeff[3,2]`) | [`r summary(modelTotalKeptByI)$coeff[3,1] - 1.96*summary(modelTotalKeptByI)$coeff[3,2]`, `r summary(modelTotalKeptByI)$coeff[3,1] + 1.96*summary(modelTotalKeptByI)$coeff[3,2]`] | t=`r summary(modelTotalKeptByI)$coeff[3,3]` | p=`r summary(modelTotalKeptByI)$coeff[3,4]`
+Predicting Total Amount Kept by Investor | &nbsp; | &nbsp; | &nbsp; | &nbsp;
+rBD (> CTL) | `r summary(modelTotalKeptByI)$coeff[2,1]` (`r summary(modelTotalKeptByI)$coeff[2,2]`) | [`r summary(modelTotalKeptByI)$coeff[2,1] - 1.96*summary(modelTotalKeptByI)$coeff[2,2]`, `r summary(modelTotalKeptByI)$coeff[2,1] + 1.96*summary(modelTotalKeptByI)$coeff[2,2]`] | t=`r summary(modelTotalKeptByI)$coeff[2,3]` | p=`r summary(modelTotalKeptByI)$coeff[2,4]`
+rMDD (> CTL) | `r summary(modelTotalKeptByI)$coeff[3,1]` (`r summary(modelTotalKeptByI)$coeff[3,2]`) | [`r summary(modelTotalKeptByI)$coeff[3,1] - 1.96*summary(modelTotalKeptByI)$coeff[3,2]`, `r summary(modelTotalKeptByI)$coeff[3,1] + 1.96*summary(modelTotalKeptByI)$coeff[3,2]`] | t=`r summary(modelTotalKeptByI)$coeff[3,3]` | p=`r summary(modelTotalKeptByI)$coeff[3,4]`
 $R^2$ | `r summary(modelTotalKeptByI)$r.squared` | &nbsp; | &nbsp; | &nbsp;
 
 
@@ -980,11 +791,11 @@ summary(simpleModSecondary2)
 ## controlling for symptoms
 ## summary measures
 summary(lm(investment ~ condition + IDSC + YMRS, tgTotal))
-#BD
+#rBD
 15.67514 - 1.96*6.11589
 15.67514 + 1.96*6.11589
 
-#MDD n.s.
+#rMDD n.s.
 8.02544 - 1.96*6.27044
 8.02544 + 1.96*6.27044
 
@@ -993,11 +804,11 @@ summary(lm(investment ~ condition + IDSC + YMRS, tgTotal))
 -4.33863 + 1.96*2.09686
 
 summary(lm(repayment ~ condition + IDSC + YMRS, tgTotal))
-#BD
+#rBD
 45.2791 - 1.96*16.3813
 45.2791 + 1.96*16.3813
 
-#MDD trending
+#rMDD trending
 30.2942 - 1.96*16.7953
 30.2942 + 1.96*16.7953
 
@@ -1008,19 +819,19 @@ summary(lm(repayment ~ condition + IDSC + YMRS, tgTotal))
 
 
 summary(lm(totalMoneyKept ~ condition + IDSC + YMRS, tgTotal))
-#BD n.s.
+#rBD n.s.
 -4.33863 - 1.96*2.09686
 -4.33863 + 1.96*2.09686
-#MDD n.s.
+#rMDD n.s.
 -12.8768 - 1.96*5.6164 
 -12.8768 + 1.96*5.6164 
 
 
 summary(lm(totalMoneyKeptByInvestor ~ condition + IDSC + YMRS, tgTotal))
-#BD
+#rBD
 29.6040 - 1.96*11.3636
 29.6040 + 1.96*11.3636
-#MDD trending
+#rMDD trending
 22.2688 - 1.96*11.6507
 22.2688 + 1.96*11.6507
 #YMRS
