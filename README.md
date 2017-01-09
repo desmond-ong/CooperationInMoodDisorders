@@ -2,7 +2,7 @@
 
 This repository contains materials for the following paper:
 
-Ong, D. C., Zaki, J., & Gruber, J. (in press). Increased Cooperative Behavior across Remitted Bipolar I Disorder and Major Depression: Insights Utilizing a Behavioral Economic Trust Game. *J. Abnormal Psychology*.
+Ong, D. C., Zaki, J., & Gruber, J. (2017). Increased Cooperative Behavior across Remitted Bipolar I Disorder and Major Depression: Insights Utilizing a Behavioral Economic Trust Game. *Journal of Abnormal Psychology*, 126(1), 1-7.
 
 This repository is maintained by Desmond Ong. Questions, comments, requests for clarification or replication, etc, should be directed to desmond (dot) ong (at) cs (dot) stanford (dot) edu
 
