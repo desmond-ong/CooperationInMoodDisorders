@@ -1,6 +1,6 @@
 # Cooperation In Mood Disorders
 
-This [Github pages](https://desmond-ong.github.io/CooperationInMoodDisorders), ([repository](https://github.com/desmond-ong/CooperationInMoodDisorders)) contains materials for the following paper:
+This [Github page](https://desmond-ong.github.io/CooperationInMoodDisorders) ([repository](https://github.com/desmond-ong/CooperationInMoodDisorders)) contains materials for the following paper:
 
 Ong, D. C., Zaki, J., & Gruber, J. (2017). Increased Cooperative Behavior across Remitted Bipolar I Disorder and Major Depression: Insights Utilizing a Behavioral Economic Trust Game. *Journal of Abnormal Psychology*, 126(1), 1-7.
 
