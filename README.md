@@ -22,4 +22,4 @@ The R markdown file can also be neatly formatted into a nice [HTML report](http:
 
 ## Supplemental Information about Inter-rater Reliability
 
-Additional information regarding inter-rater reliability (after Gruber & Weinstock, 2018) for the current study can also be found [here](https://github.com/desmond-ong/CooperationInMoodDisorders/blob/master/Ong.Zaki.Gruber_Supplemental_IRR_Descriptive_10.08.18.pdf).
+Additional information regarding inter-rater reliability (after [Gruber & Weinstock, 2018](https://link.springer.com/article/10.1186/s40345-017-0111-7)) for the current study can also be found [here](https://github.com/desmond-ong/CooperationInMoodDisorders/blob/master/Ong.Zaki.Gruber_Supplemental_IRR_Descriptive_10.08.18.pdf).
