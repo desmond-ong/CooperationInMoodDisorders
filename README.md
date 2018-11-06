@@ -6,7 +6,7 @@ Ong, D. C., Zaki, J., & Gruber, J. (2017). Increased Cooperative Behavior across
 
 [ [Link to article on journal website](http://psycnet.apa.org/doi/10.1037/abn0000239) ]
 
-This repository is maintained by Desmond Ong. Questions, comments, requests for clarification or replication, etc, should be directed to desmond (dot) ong (at) cs (dot) stanford (dot) edu
+This repository is maintained by Desmond Ong. Questions, comments, requests for clarification or replication, etc, should be directed to dco (at) cs (dot) stanford (dot) edu
 
 ## Data and Experiment
 
