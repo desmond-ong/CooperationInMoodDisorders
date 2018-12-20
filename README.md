@@ -18,7 +18,7 @@ Analysis code is provided in [Analysis/TrustGameAnalysis.Rmd](https://github.com
 
 The file contains all the R code necessary to replicate the analyses reported in the paper.
 
-The R markdown file can also be neatly formatted into a nice [HTML report](http://rawgit.com/desmond-ong/CooperationInMoodDisorders/master/Analysis/TrustGameAnalysis.html)
+The R markdown file can also be neatly formatted into a nice [HTML report](https://desmond-ong.github.io/CooperationInMoodDisorders/Analysis/TrustGameAnalysis.html)
 
 ## Supplemental Information about Inter-rater Reliability
 
